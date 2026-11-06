@@ -1,0 +1,52 @@
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# SQLite databases, journals, and WAL/SHM files
+*.db
+*.db-*
+*.sqlite3
+*.sqlite3-*
+app.db
+
+# Logs
+logs/
+*.log
+
+# Testing, coverage, and reports
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+*.lcov
+*.cover
+htmlcov/
+.tox/
+.nox/
+
+# Type checkers and linters
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+dmypy.json
+
+# Packaging and distribution
+build/
+dist/
+*.egg-info/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Editor runners
+tempCodeRunnerFile.py
