@@ -1,17 +1,67 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 import { Navbar } from "./components/Navbar";
 import { ProductCard } from "./components/ProductCard";
 
-const products = [
-  { id: 1, name: 'Pistolet Alpha 9mm', price: 2400, category: 'Krótka' },
-  { id: 2, name: 'Karabinek AR-15 Tactical', price: 6500, category: 'Długa' },
-  { id: 3, name: 'Strzelba Pump-Action 12GA', price: 1800, category: 'Gładkolufowa' },
-];
-
 function App() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Pobieranie produktów z backendu API przy montowaniu komponentu
+  useEffect(() => {
+    let isMounted = true;
+
+    fetch('http://127.0.0.1:8000/api/products')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Błąd serwera: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (isMounted) {
+          setProducts(data);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          console.error('Błąd podczas pobierania produktów:', err);
+          setError('Nie udało się połączyć z serwerem. Upewnij się, że backend jest uruchomiony.');
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Ponowna próba pobrania produktów po błędzie
+  const handleRetry = () => {
+    setLoading(true);
+    setError(null);
+    fetch('http://127.0.0.1:8000/api/products')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Błąd serwera: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setProducts(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Błąd podczas pobierania produktów:', err);
+        setError('Nie udało się połączyć z serwerem. Upewnij się, że backend jest uruchomiony.');
+        setLoading(false);
+      });
+  };
 
   // Funkcja dodająca produkt do koszyka
   const addToCart = (product) => {
@@ -41,10 +91,13 @@ function App() {
   };
 
   // Filtrowanie produktów na podstawie wyszukiwanej frazy
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProducts = products.filter((product) => {
+    const query = searchQuery.toLowerCase();
+    const nameMatch = product.name?.toLowerCase().includes(query);
+    const categoryMatch = product.category?.toLowerCase().includes(query);
+    const caliberMatch = product.caliber?.toLowerCase().includes(query);
+    return Boolean(nameMatch || categoryMatch || caliberMatch);
+  });
 
   // Całkowita liczba sztuk w koszyku
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -101,7 +154,23 @@ function App() {
           {searchQuery ? `Wyniki wyszukiwania dla: "${searchQuery}"` : 'Dostępne modele'}
         </h2>
         
-        {filteredProducts.length === 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-16 text-zinc-400 space-y-4">
+            <Loader2 className="w-8 h-8 animate-spin text-zinc-300" />
+            <p className="text-base text-zinc-400">Ładowanie produktów...</p>
+          </div>
+        ) : error ? (
+          <div className="bg-zinc-900 border border-red-900/50 rounded-lg p-6 text-center max-w-xl mx-auto my-8">
+            <p className="text-red-400 font-semibold mb-2">Błąd podczas pobierania danych</p>
+            <p className="text-sm text-zinc-400 mb-4">{error}</p>
+            <button 
+              onClick={handleRetry}
+              className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded text-sm font-semibold border border-zinc-700 transition-colors"
+            >
+              Spróbuj ponownie
+            </button>
+          </div>
+        ) : filteredProducts.length === 0 ? (
           <p className="text-zinc-400">Brak produktów spełniających kryteria wyszukiwania.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
