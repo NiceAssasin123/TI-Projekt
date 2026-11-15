@@ -13,8 +13,8 @@ def get_products(
     manufacturer: Optional[list[str]] = Query(default=None),
     category: Optional[list[str]] = Query(default=None),
     caliber: Optional[list[str]] = Query(default=None),
-    min_price: Optional[float] = Query(default=None),
-    max_price: Optional[float] = None,
+    min_price: Optional[float] = Query(default=None, ge=0),
+    max_price: Optional[float] = Query(default=None, ge=0),
     sort_by: Optional[Literal["price_asc", "price_desc", "name_asc", "name_desc"]] = None,
     session: Session = Depends(get_session)
 ) -> Sequence[Product]:
@@ -62,7 +62,7 @@ def get_products(
 def get_product(
     product_id: int,
     session: Session = Depends(get_session)
-) -> Product | HTTPException:
+) -> Product:
     product = session.get(Product, product_id)
     if not product:
         raise HTTPException(
