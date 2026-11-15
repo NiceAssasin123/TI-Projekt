@@ -11,7 +11,7 @@ def prepare_db(session: Session) -> list[Product]:
         Product(
             name="MPS ARMY",
             manufacturer="FB Radom",
-            category="Handgun",
+            category="Broń krótka",
             weight_g=780,
             description="Modułowy pistolet samopowtarzalny kalibru 9x19mm Parabellum zaprojektowany przez Fabrykę Broni Łucznik-Radom z polimerowym szkieletem.",
             price=2990.00,
@@ -25,7 +25,7 @@ def prepare_db(session: Session) -> list[Product]:
         Product(
             name="MSBS Grot A3",
             manufacturer="FB Radom",
-            category="Assault Rifle",
+            category="Karabinki",
             weight_g=3650,
             description="Modułowy karabinek systemu MSBS Grot w wersji A3 z ulepszoną ergonomią, obustronnymi manipulatorami oraz regulowaną kolbą.",
             price=8900.00,
@@ -40,7 +40,7 @@ def prepare_db(session: Session) -> list[Product]:
         Product(
             name="Amunicja 9x19 Parabellum (50 szt.)",
             manufacturer="Sellier & Bellot",
-            category="Ammunition",
+            category="Amunicja",
             weight_g=620,
             description="Pełnopłaszczowa amunicja pistoletowa FMJ o masie pocisku 8,0 g (124 gr), przeznaczona do strzelań treningowych i sportowych.",
             price=59.00,
@@ -51,7 +51,7 @@ def prepare_db(session: Session) -> list[Product]:
         Product(
             name="Strzeleckie ochronniki słuchu Earmor",
             manufacturer="Earmor",
-            category="Head Accessory",
+            category="Akcesoria",
             weight_g=350,
             description="Aktywne ochronniki słuchu tłumiące impulsy akustyczne powyżej 82 dB przy jednoczesnym wzmacnianiu dźwięków otoczenia.",
             price=185.00,
@@ -130,7 +130,7 @@ def test_filter_products_multi_select(session: Session, client: TestClient) -> N
 
     response_category: Response = client.get(
         "/api/products",
-        params={"category": ["Handgun", "Ammunition"]},
+        params={"category": ["Broń krótka", "Amunicja"]},
     )
     assert response_category.status_code == 200
     category_products: list[Product] = product_list_adapter.validate_json(response_category.content)
