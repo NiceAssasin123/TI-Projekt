@@ -25,6 +25,7 @@ def get_products(
         query = query.where(
             or_(
                 col(Product.name).ilike(pattern),
+                col(Product.description).ilike(pattern),
                 col(Product.caliber).ilike(pattern),
                 col(Product.category).ilike(pattern),
                 col(Product.manufacturer).ilike(pattern),

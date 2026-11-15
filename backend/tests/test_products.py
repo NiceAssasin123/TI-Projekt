@@ -109,6 +109,12 @@ def test_search_products(session: Session, client: TestClient) -> None:
     assert len(products) == 1
     assert {p.name for p in products} == {"MSBS Grot A3"}
 
+    response_desc: Response = client.get("/api/products", params={"search": "fmj"})
+    assert response_desc.status_code == 200
+    desc_products: list[Product] = product_list_adapter.validate_json(response_desc.content)
+    assert len(desc_products) == 1
+    assert {p.name for p in desc_products} == {"Amunicja 9x19 Parabellum (50 szt.)"}
+
     response_empty: Response = client.get("/api/products", params={"search": "__NIEISTNIEJACY_PRODUKT__"})
     assert response_empty.status_code == 200
     assert response_empty.json() == []
