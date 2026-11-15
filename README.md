@@ -55,9 +55,9 @@ Built as part of the *Internet Technologies* (Technologie Internetowe) academic 
 - [x] Automated CI pipeline (Pytest, ESLint, Vite build check)
 
 ### Phase 2: Product Catalog & Database Engine
-- [ ] Relational schema design (Categories, Firearms, Ammunition, Accessories)
-- [ ] Database seeding & migration tooling
-- [ ] Product catalog REST API with parameter filtering (caliber, type, brand)
+- [x] Product catalog schema design (Firearms, Ammunition, Accessories)
+- [x] Database seeding & migration tooling
+- [x] Product catalog REST API with parameter filtering (caliber, type, brand)
 - [ ] Storefront browsing UI & responsive product grid
 
 ### Phase 3: Domain Compliance & Shopping Experience

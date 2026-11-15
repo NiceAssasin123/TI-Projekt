@@ -6,3 +6,4 @@ extraPaths = ["."]
 root = "tests"
 reportUnknownMemberType = "none"
 reportUnknownVariableType = "none"
+reportUnknownArgumentType = "none"
