@@ -8,8 +8,35 @@ product_list_adapter: TypeAdapter[list[Product]] = TypeAdapter(list[Product])
 
 def prepare_db(session: Session) -> list[Product]:
     products: list[Product] = [
-        Product(name="MPS ARMY", category="Handgun", caliber="9x19mm Parabellum", price=2990.00, in_stock=20, requires_permit=True),
-        Product(name="MSBS Grot A3", category="Assault Rifle", caliber="5.56x45mm NATO", price=8900.00, in_stock=15, requires_permit=True),
+        Product(
+        name="MPS ARMY",
+        manufacturer="FB Radom",
+        category="Handgun",
+        weight_g=780,
+        description="Modułowy pistolet samopowtarzalny kalibru 9x19mm Parabellum zaprojektowany przez Fabrykę Broni Łucznik-Radom z polimerowym szkieletem.",
+        price=2990.00,
+        in_stock=20,
+        requires_permit=True,
+        caliber="9x19mm Parabellum",
+        barrel_length_mm=104,
+        mag_capacity="15+1",
+        rail_system="Picatinny",
+        ),
+        Product(
+            name="MSBS Grot A3",
+            manufacturer="FB Radom",
+            category="Assault Rifle",
+            weight_g=3650,
+            description="Modułowy karabinek systemu MSBS Grot w wersji A3 z ulepszoną ergonomią, obustronnymi manipulatorami oraz regulowaną kolbą.",
+            price=8900.00,
+            in_stock=15,
+            requires_permit=True,
+            caliber="5.56x45mm NATO",
+            barrel_length_mm=406,
+            mag_capacity="30+1",
+            thread="1/2x28",
+            rail_system="M-LOK",
+        ),
     ]
     session.add_all(products)
     session.commit()

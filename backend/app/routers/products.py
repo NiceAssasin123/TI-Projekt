@@ -10,6 +10,7 @@ router = APIRouter(prefix="/api/products", tags=["products"])
 @router.get("", response_model=List[Product])
 def get_products(
     search: Optional[str] = Query(default=None, min_length=2, max_length=50),
+    manufacturer: Optional[list[str]] = Query(default=None),
     category: Optional[list[str]] = Query(default=None),
     caliber: Optional[list[str]] = Query(default=None),
     min_price: Optional[float] = Query(default=None),
@@ -26,8 +27,13 @@ def get_products(
                 col(Product.name).ilike(pattern),
                 col(Product.caliber).ilike(pattern),
                 col(Product.category).ilike(pattern),
+                col(Product.manufacturer).ilike(pattern),
+                col(Product.thread).ilike(pattern),
+                col(Product.rail_system).ilike(pattern),
             )
         )
+    if manufacturer:
+        query = query.where(col(Product.manufacturer).in_(manufacturer))
     if category:
         query = query.where(col(Product.category).in_(category))
     if caliber:
