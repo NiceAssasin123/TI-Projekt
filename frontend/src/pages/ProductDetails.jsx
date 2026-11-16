@@ -16,6 +16,7 @@ export default function ProductDetails() {
         const response = await api.get(`/products/${id}`);
         setProduct(response.data);
       } catch (err) {
+        console.error(err)
         setError("Nie udało się pobrać szczegółów produktu.");
       } finally {
         setLoading(false);
