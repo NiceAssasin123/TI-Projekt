@@ -26,3 +26,7 @@ class Product(SQLModel, table=True):
     thread: Optional[str] = None
     rail_system: Optional[str] = None
     image_url: Optional[str] = None
+
+class CatalogFiltersResponse(SQLModel):
+    categories: list[str]
+    calibers: list[str]

@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 from sqlmodel import Session
-from app.models import Product, Category
+from app.models import Product, Category, CatalogFiltersResponse
 from httpx import Response
 from pydantic import TypeAdapter
 
@@ -204,3 +204,13 @@ def test_combined_filters(session: Session, client: TestClient) -> None:
     products: list[Product] = product_list_adapter.validate_json(response.content)
     assert len(products) == 1
     assert {p.name for p in products} == {"MPS ARMY"}
+
+def test_get_filters(session: Session, client: TestClient) -> None:
+    added: list[Product] = prepare_db(session)
+
+    response: Response = client.get("/api/products/filters")
+    assert response.status_code == 200
+    filters_response: CatalogFiltersResponse = CatalogFiltersResponse.model_validate_json(response.content)
+    assert filters_response.categories == [c.value for c in Category]
+    expected_calibers: list[str] = sorted({p.caliber for p in added if p.caliber is not None})
+    assert filters_response.calibers == expected_calibers
