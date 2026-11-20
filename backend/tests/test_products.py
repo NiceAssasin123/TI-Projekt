@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 from sqlmodel import Session
-from app.models.product import Product
+from app.models import Product, Category
 from httpx import Response
 from pydantic import TypeAdapter
 
@@ -11,7 +11,7 @@ def prepare_db(session: Session) -> list[Product]:
         Product(
             name="MPS ARMY",
             manufacturer="FB Radom",
-            category="Broń krótka",
+            category=Category.HANDGUN,
             weight_g=780,
             description="Modułowy pistolet samopowtarzalny kalibru 9x19mm Parabellum zaprojektowany przez Fabrykę Broni Łucznik-Radom z polimerowym szkieletem.",
             price=2990.00,
@@ -25,7 +25,7 @@ def prepare_db(session: Session) -> list[Product]:
         Product(
             name="MSBS Grot A3",
             manufacturer="FB Radom",
-            category="Karabinki",
+            category=Category.RIFLE,
             weight_g=3650,
             description="Modułowy karabinek systemu MSBS Grot w wersji A3 z ulepszoną ergonomią, obustronnymi manipulatorami oraz regulowaną kolbą.",
             price=8900.00,
@@ -40,7 +40,7 @@ def prepare_db(session: Session) -> list[Product]:
         Product(
             name="Amunicja 9x19 Parabellum (50 szt.)",
             manufacturer="Sellier & Bellot",
-            category="Amunicja",
+            category=Category.AMMUNITION,
             weight_g=620,
             description="Pełnopłaszczowa amunicja pistoletowa FMJ o masie pocisku 8,0 g (124 gr), przeznaczona do strzelań treningowych i sportowych.",
             price=59.00,
@@ -51,7 +51,7 @@ def prepare_db(session: Session) -> list[Product]:
         Product(
             name="Strzeleckie ochronniki słuchu Earmor",
             manufacturer="Earmor",
-            category="Akcesoria",
+            category=Category.ACCESSORIES,
             weight_g=350,
             description="Aktywne ochronniki słuchu tłumiące impulsy akustyczne powyżej 82 dB przy jednoczesnym wzmacnianiu dźwięków otoczenia.",
             price=185.00,
@@ -141,6 +141,9 @@ def test_filter_products_multi_select(session: Session, client: TestClient) -> N
     assert response_category.status_code == 200
     category_products: list[Product] = product_list_adapter.validate_json(response_category.content)
     assert {p.name for p in category_products} == {"MPS ARMY", "Amunicja 9x19 Parabellum (50 szt.)"}
+
+    response: Response = client.get("/api/products", params={"category": "Nieistniejąca"})
+    assert response.status_code == 422
 
 
 def test_filter_products_price_range(session: Session, client: TestClient) -> None:

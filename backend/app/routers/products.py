@@ -2,7 +2,7 @@ from typing import List, Optional, Literal
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlmodel import Session, select, or_, col
 from app.database import get_session
-from app.models import Product
+from app.models import Product, Category
 from collections.abc import Sequence
 
 router = APIRouter(prefix="/api/products", tags=["products"])
@@ -11,7 +11,7 @@ router = APIRouter(prefix="/api/products", tags=["products"])
 def get_products(
     search: Optional[str] = Query(default=None, min_length=2, max_length=50),
     manufacturer: Optional[list[str]] = Query(default=None),
-    category: Optional[list[str]] = Query(default=None),
+    category: Optional[list[Category]] = Query(default=None),
     caliber: Optional[list[str]] = Query(default=None),
     min_price: Optional[float] = Query(default=None, ge=0),
     max_price: Optional[float] = Query(default=None, ge=0),
