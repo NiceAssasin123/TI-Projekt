@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 
 export function Navbar() {
   return (
-    <nav className="bg-zinc-900 border-b border-zinc-800 p-4 sticky top-0 z-10">
+    <nav className="bg-zinc-900 border-b border-zinc-800 p-4 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
         
         {/* LOGO - Oplecione Linkiem, wraca na stronę główną */}
