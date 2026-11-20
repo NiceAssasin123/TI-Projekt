@@ -17,7 +17,7 @@ def prepare_db(session: Session) -> list[Product]:
             price=2990.00,
             in_stock=20,
             requires_permit=True,
-            caliber="9x19mm Parabellum",
+            caliber="9x19mm",
             barrel_length_mm=104,
             mag_capacity="15+1",
             rail_system="Picatinny",
@@ -31,7 +31,7 @@ def prepare_db(session: Session) -> list[Product]:
             price=8900.00,
             in_stock=15,
             requires_permit=True,
-            caliber="5.56x45mm NATO",
+            caliber="5.56x45mm",
             barrel_length_mm=406,
             mag_capacity="30+1",
             thread="1/2x28",
@@ -46,7 +46,7 @@ def prepare_db(session: Session) -> list[Product]:
             price=59.00,
             in_stock=45,
             requires_permit=True,
-            caliber="9x19mm Parabellum",
+            caliber="9x19mm",
         ),
         Product(
             name="Strzeleckie ochronniki słuchu Earmor",
@@ -72,10 +72,10 @@ def test_get_all_products(session: Session, client: TestClient) -> None:
 
 def test_filter_products_by_caliber(session: Session, client: TestClient) -> None:
     added: list[Product] = prepare_db(session)
-    response: Response = client.get("/api/products", params={"caliber": "5.56x45mm NATO"})
+    response: Response = client.get("/api/products", params={"caliber": "5.56x45mm"})
     assert response.status_code == 200
     products: list[Product] = product_list_adapter.validate_json(response.content)
-    expected_names: set[str] = {p.name for p in added if p.caliber == "5.56x45mm NATO"}
+    expected_names: set[str] = {p.name for p in added if p.caliber == "5.56x45mm"}
     assert len(products) == len(expected_names)
     assert {p.name for p in products} == expected_names
 
@@ -195,7 +195,7 @@ def test_combined_filters(session: Session, client: TestClient) -> None:
 
     response: Response = client.get(
         "/api/products",
-        params={"manufacturer": ["FB Radom"], "caliber": ["9x19mm Parabellum"], "max_price": 3000.0},
+        params={"manufacturer": ["FB Radom"], "caliber": ["9x19mm"], "max_price": 3000.0},
     )
     assert response.status_code == 200
     products: list[Product] = product_list_adapter.validate_json(response.content)

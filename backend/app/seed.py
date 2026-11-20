@@ -12,7 +12,7 @@ products: list[Product] = [
         price=2990.00,
         in_stock=20,
         requires_permit=True,
-        caliber="9x19mm Parabellum",
+        caliber="9x19mm",
         barrel_length_mm=104,
         mag_capacity="15+1",
         rail_system="Picatinny",
@@ -26,7 +26,7 @@ products: list[Product] = [
         price=8900.00,
         in_stock=15,
         requires_permit=True,
-        caliber="5.56x45mm NATO",
+        caliber="5.56x45mm",
         barrel_length_mm=406,
         mag_capacity="30+1",
         thread="1/2x28",
@@ -41,7 +41,7 @@ products: list[Product] = [
         price=59.00,
         in_stock=45,
         requires_permit=True,
-        caliber="9x19mm Parabellum",
+        caliber="9x19mm",
     ),
     Product(
         name="Strzeleckie ochronniki słuchu Earmor",
@@ -67,5 +67,5 @@ def seed_products() -> None:
         print("Successfully commited the changes")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # python -m app.seed
     seed_products()
