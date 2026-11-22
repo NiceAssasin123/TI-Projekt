@@ -58,7 +58,7 @@ Built as part of the *Internet Technologies* (Technologie Internetowe) academic 
 - [x] Product catalog schema design (Firearms, Ammunition, Accessories)
 - [x] Database seeding & migration tooling
 - [x] Product catalog REST API with parameter filtering (caliber, type, brand)
-- [ ] Storefront browsing UI & responsive product grid
+- [x] Storefront browsing UI & responsive product grid
 
 ### Phase 3: Domain Compliance & Shopping Experience
 - [ ] Shopping cart & local state persistence

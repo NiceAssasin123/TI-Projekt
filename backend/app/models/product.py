@@ -1,11 +1,20 @@
 from typing import Optional
 from sqlmodel import SQLModel, Field
+from enum import StrEnum
+
+class Category(StrEnum):
+    HANDGUN = "Broń krótka"
+    RIFLE = "Karabinki"
+    SHOTGUN = "Strzelby"
+    AMMUNITION = "Amunicja"
+    ACCESSORIES = "Akcesoria"
+    MODIFICATIONS = "Modyfikacje"
 
 class Product(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
     manufacturer: str
-    category: str
+    category: Category
     weight_g: int = Field(gt=0)
     description: str = Field(min_length=3, max_length=500)
     price: float = Field(gt=0)
@@ -17,3 +26,10 @@ class Product(SQLModel, table=True):
     thread: Optional[str] = None
     rail_system: Optional[str] = None
     image_url: Optional[str] = None
+
+class CatalogFiltersResponse(SQLModel):
+    categories: list[str]
+    calibers: list[str]
+    manufacturers: list[str]
+    min_price: float
+    max_price: float

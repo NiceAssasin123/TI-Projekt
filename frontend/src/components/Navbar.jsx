@@ -1,46 +1,119 @@
-import { ShoppingCart, Menu, Shield, Search } from 'lucide-react';
+import { useState } from 'react';
+import { ShoppingCart, Menu, X, Shield, Search } from 'lucide-react';
 import { cn } from 'cn';
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 export function Navbar() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const urlSearch =
+    location.pathname === '/products'
+      ? new URLSearchParams(location.search).get('search') || ''
+      : '';
+
+  const [searchInput, setSearchInput] = useState(urlSearch);
+  const [prevUrlSearch, setPrevUrlSearch] = useState(urlSearch);
+
+  // Synchronizacja pola w Navbarze z parametrem ?search= w URL (bez useEffect)
+  if (urlSearch !== prevUrlSearch) {
+    setPrevUrlSearch(urlSearch);
+    setSearchInput(urlSearch);
+  }
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const trimmed = searchInput.trim().slice(0, 50);
+
+    if (trimmed) {
+      navigate(`/products?search=${encodeURIComponent(trimmed)}`);
+    } else {
+      navigate('/products');
+    }
+    setIsMobileMenuOpen(false);
+  };
+
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
   return (
-    <nav className="bg-zinc-900 border-b border-zinc-800 p-4 sticky top-0 z-10">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-        
-        {/* LOGO - Oplecione Linkiem, wraca na stronę główną */}
-        <div className="flex items-center space-x-2 w-full md:w-auto justify-between">
-          <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-              <Shield className="w-8 h-8 text-zinc-100" />
-              <span className="text-xl font-bold tracking-wider text-zinc-100">
-                TACTICAL<span className="text-zinc-500">STORE</span>
-              </span>
+    <nav className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-900 p-4">
+      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 md:flex-row">
+        {/* LOGO + przycisk hamburgera na mobile */}
+        <div className="flex w-full items-center justify-between space-x-2 md:w-auto">
+          <Link
+            to="/"
+            onClick={closeMobileMenu}
+            className="flex items-center space-x-2 transition-opacity hover:opacity-80"
+          >
+            <Shield className="h-8 w-8 text-zinc-100" />
+            <span className="text-xl font-bold tracking-wider text-zinc-100">
+              TACTICAL<span className="text-zinc-500">STORE</span>
+            </span>
           </Link>
-          <Menu className="w-6 h-6 hover:text-zinc-400 cursor-pointer transition-colors md:hidden" />
-        </div>
-        
-        <div className="flex w-full md:max-w-md items-center space-x-2 relative">
-           <Search className="w-4 h-4 absolute left-3 text-zinc-400" />
-           <Input 
-              type="search" 
-              placeholder="Szukaj produktów..." 
-              className="pl-9 bg-zinc-950 border-zinc-800 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-zinc-700"
-            />
+
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+            aria-label={isMobileMenuOpen ? 'Zamknij menu' : 'Otwórz menu'}
+            aria-expanded={isMobileMenuOpen}
+            className="cursor-pointer rounded-md p-1.5 text-zinc-100 transition-colors hover:bg-zinc-800 hover:text-zinc-300 md:hidden"
+          >
+            {isMobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </button>
         </div>
 
-        <div className="hidden md:flex items-center space-x-4">
+        {/* Wyszukiwarka (Enter lub kliknięcie lupy) */}
+        <form
+          onSubmit={handleSearchSubmit}
+          className="relative flex w-full items-center md:max-w-md"
+        >
+          <button
+            type="submit"
+            aria-label="Szukaj produktów"
+            className="absolute left-3 cursor-pointer text-zinc-400 transition-colors hover:text-zinc-100"
+          >
+            <Search className="h-4 w-4" />
+          </button>
+          <Input
+            type="search"
+            maxLength={50}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Szukaj produktów..."
+            className="border-zinc-800 bg-zinc-950 pl-9 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-zinc-700"
+          />
+        </form>
+
+        {/* Nawigacja na desktopie */}
+        <div className="hidden items-center space-x-4 md:flex">
+          <Link
+            to="/products"
+            className={cn(
+              buttonVariants({ variant: "ghost" }),
+              "text-zinc-200 hover:bg-zinc-800 hover:text-zinc-100"
+            )}
+          >
+            Katalog
+          </Link>
+
           <Link
             to="/cart"
             aria-label="Koszyk"
             className={cn(
               buttonVariants({ variant: "ghost", size: "icon" }),
-              "hover:bg-zinc-800 hover:text-zinc-100 relative"
+              "relative hover:bg-zinc-800 hover:text-zinc-100"
             )}
           >
-            <ShoppingCart className="w-5 h-5" />
+            <ShoppingCart className="h-5 w-5" />
           </Link>
-          
+
           <Link
             to="/login"
             className={cn(
@@ -52,6 +125,45 @@ export function Navbar() {
           </Link>
         </div>
       </div>
+
+      {/* Rozwijane menu na mobile */}
+      {isMobileMenuOpen && (
+        <div className="mt-4 flex flex-col gap-2 border-t border-zinc-800 pt-4 md:hidden">
+          <Link
+            to="/products"
+            onClick={closeMobileMenu}
+            className={cn(
+              buttonVariants({ variant: "ghost" }),
+              "w-full justify-start text-zinc-200 hover:bg-zinc-800 hover:text-zinc-100"
+            )}
+          >
+            Katalog
+          </Link>
+
+          <Link
+            to="/cart"
+            onClick={closeMobileMenu}
+            className={cn(
+              buttonVariants({ variant: "ghost" }),
+              "w-full justify-start gap-2 text-zinc-200 hover:bg-zinc-800 hover:text-zinc-100"
+            )}
+          >
+            <ShoppingCart className="h-4 w-4" />
+            Koszyk
+          </Link>
+
+          <Link
+            to="/login"
+            onClick={closeMobileMenu}
+            className={cn(
+              buttonVariants(),
+              "w-full bg-zinc-100 text-zinc-950 hover:bg-zinc-300"
+            )}
+          >
+            Zaloguj
+          </Link>
+        </div>
+      )}
     </nav>
   );
 }
