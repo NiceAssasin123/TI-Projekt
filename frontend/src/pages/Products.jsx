@@ -1,50 +1,68 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Loader2, AlertCircle } from "lucide-react";
 import { api } from "@/lib/api";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductFilters } from "@/components/ProductFilters";
 
 export default function Products() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // Stan przechowujący aktualnie wybrane filtry
-  const [filters, setFilters] = useState({
-    search: "",
+
+  // Kategorie i kalibry w stanie lokalnym, a search zsynchronizowany z adresem URL
+  const [selectedFilters, setSelectedFilters] = useState({
     category: [],
-    caliber: []
+    caliber: [],
   });
 
-// Efekt pobierający dane z API za każdym razem, gdy zmienią się filtry
+  const searchQuery = searchParams.get("search") || "";
+  const trimmedSearch = searchQuery.trim();
+  const effectiveSearch =
+    trimmedSearch.length >= 2 ? trimmedSearch.slice(0, 50) : "";
+
+  const filters = {
+    search: searchQuery,
+    category: selectedFilters.category,
+    caliber: selectedFilters.caliber,
+  };
+
+  // Efekt pobierający dane z API przy zmianie efektywnych filtrów
   useEffect(() => {
+    let isCancelled = false;
+
     const fetchProducts = async () => {
       setLoading(true);
       setError(null);
       try {
-        // Przygotowujemy czysty obiekt z parametrami
         const activeFilters = {};
-        
-        // Dodajemy 'search' tylko, jeśli ma jakieś znaki
-        if (filters.search && filters.search.trim() !== "") {
-          activeFilters.search = filters.search;
+
+        if (effectiveSearch) {
+          activeFilters.search = effectiveSearch;
         }
-        // Dodajemy tablice tylko, jeśli nie są puste
-        if (filters.category && filters.category.length > 0) {
-          activeFilters.category = filters.category;
+        if (selectedFilters.category.length > 0) {
+          activeFilters.category = selectedFilters.category;
         }
-        if (filters.caliber && filters.caliber.length > 0) {
-          activeFilters.caliber = filters.caliber;
+        if (selectedFilters.caliber.length > 0) {
+          activeFilters.caliber = selectedFilters.caliber;
         }
 
-        // Używamy wyczyszczonych filtrów (activeFilters)
         const response = await api.get("/products", { params: activeFilters });
-        setProducts(response.data);
+        if (!isCancelled) {
+          setProducts(response.data);
+        }
       } catch (err) {
         console.error("Błąd pobierania produktów:", err);
-        setError("Nie udało się pobrać katalogu produktów. Spróbuj ponownie później.");
+        if (!isCancelled) {
+          setError(
+            "Nie udało się pobrać katalogu produktów. Spróbuj ponownie później."
+          );
+        }
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     };
 
@@ -52,27 +70,49 @@ export default function Products() {
       fetchProducts();
     }, 300);
 
-    return () => clearTimeout(delayTimer);
-  }, [filters]);
+    return () => {
+      isCancelled = true;
+      clearTimeout(delayTimer);
+    };
+  }, [effectiveSearch, selectedFilters.category, selectedFilters.caliber]);
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    if (key === "search") {
+      const nextParams = new URLSearchParams(searchParams);
+      if (value) {
+        nextParams.set("search", value);
+      } else {
+        nextParams.delete("search");
+      }
+      setSearchParams(nextParams, { replace: true });
+      return;
+    }
+
+    setSelectedFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleClearFilters = () => {
+    setSelectedFilters({ category: [], caliber: [] });
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("search");
+    setSearchParams(nextParams, { replace: true });
   };
 
   const handleAddToCart = (product) => {
     console.log("Kliknięto Dodaj do koszyka:", product.name);
-    // Tutaj w przyszłości podłączysz logikę koszyka
+    // Tutaj w podłączę logikę koszyka
   };
 
   return (
     <div className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
       <div className="flex flex-col gap-8 md:flex-row">
-        
         {/* Lewa kolumna: Pasek filtrów */}
         <aside className="w-full shrink-0 md:w-64 lg:w-72">
-          {/* Klasa sticky sprawia, że filtry zostają na ekranie podczas przewijania w dół */}
           <div className="sticky top-24">
-            <ProductFilters filters={filters} onFilterChange={handleFilterChange} />
+            <ProductFilters
+              filters={filters}
+              onFilterChange={handleFilterChange}
+            />
           </div>
         </aside>
 
@@ -92,8 +132,8 @@ export default function Products() {
           ) : products.length === 0 && !error ? (
             <div className="flex h-64 flex-col items-center justify-center rounded-xl border border-dashed border-zinc-700 bg-zinc-900/30 text-zinc-400">
               <p>Nie znaleziono produktów dla podanych kryteriów.</p>
-              <button 
-                onClick={() => setFilters({ search: "", category: [], caliber: [] })}
+              <button
+                onClick={handleClearFilters}
                 className="mt-4 text-red-500 transition-colors hover:text-red-400"
               >
                 Wyczyść filtry
@@ -102,9 +142,9 @@ export default function Products() {
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {products.map((product) => (
-                <ProductCard 
-                  key={product.id} 
-                  product={product} 
+                <ProductCard
+                  key={product.id}
+                  product={product}
                   onAddToCart={handleAddToCart}
                 />
               ))}
