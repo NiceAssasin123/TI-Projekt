@@ -1,6 +1,6 @@
 from typing import List, Optional, Literal
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlmodel import Session, select, or_, col
+from sqlmodel import Session, select, or_, col, func
 from app.database import get_session
 from app.models import Product, Category, CatalogFiltersResponse
 from collections.abc import Sequence
@@ -61,13 +61,30 @@ def get_products(
 @router.get("/filters", response_model=CatalogFiltersResponse)
 def get_filters(session: Session = Depends(get_session)) -> CatalogFiltersResponse:
     categories: list[str] = [c.value for c in Category]
+
     caliber_query = select(Product.caliber)
     caliber_query = caliber_query.where(col(Product.caliber).is_not(None))
     caliber_query = caliber_query.distinct()
     caliber_query = caliber_query.order_by(col(Product.caliber))
     raw_calibers: Sequence[Optional[str]] = session.exec(caliber_query).all()
     calibers: list[str] = [c for c in raw_calibers if c is not None]
-    return CatalogFiltersResponse(categories=categories, calibers=calibers)
+
+    manufacturer_query = select(Product.manufacturer)
+    manufacturer_query = manufacturer_query.where(col(Product.manufacturer).is_not(None))
+    manufacturer_query = manufacturer_query.distinct()
+    manufacturer_query = manufacturer_query.order_by(col(Product.manufacturer))
+    raw_manufacturers: Sequence[str] = session.exec(manufacturer_query).all()
+    manufacturers: list[str] = [c for c in raw_manufacturers]
+
+    price_query = select(
+        func.min(col(Product.price)),
+        func.max(col(Product.price))
+    )
+    raw_min, raw_max = session.exec(price_query).one()
+    min_price: float = raw_min or 0.0
+    max_price: float = raw_max or 0.0
+
+    return CatalogFiltersResponse(categories=categories, calibers=calibers, manufacturers=manufacturers, min_price=min_price, max_price=max_price)
 
 @router.get("/{product_id}", response_model=Product)
 def get_product(
