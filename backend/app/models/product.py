@@ -30,3 +30,4 @@ class Product(SQLModel, table=True):
 class CatalogFiltersResponse(SQLModel):
     categories: list[str]
     calibers: list[str]
+    manufacturers: list[str]

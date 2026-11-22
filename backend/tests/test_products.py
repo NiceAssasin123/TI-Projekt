@@ -214,3 +214,5 @@ def test_get_filters(session: Session, client: TestClient) -> None:
     assert filters_response.categories == [c.value for c in Category]
     expected_calibers: list[str] = sorted({p.caliber for p in added if p.caliber is not None})
     assert filters_response.calibers == expected_calibers
+    expected_manufacturers: list[str] = sorted({p.manufacturer for p in added})
+    assert filters_response.manufacturers == expected_manufacturers
