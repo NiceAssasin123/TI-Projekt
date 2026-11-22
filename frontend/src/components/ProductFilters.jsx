@@ -5,6 +5,9 @@ import { api } from "@/lib/api";
 
 const PRICE_STEP = 10;
 
+const PRICE_INPUT_CLASS =
+  "pr-8 text-sm [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
+
 const RANGE_INPUT_CLASS =
   "pointer-events-none absolute inset-0 h-full w-full appearance-none bg-transparent " +
   "[&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 " +
@@ -226,7 +229,7 @@ export function ProductFilters({
                   onChange={(e) =>
                     handlePriceInputChange("min_price", e.target.value)
                   }
-                  className="pr-8 text-sm"
+                  className={PRICE_INPUT_CLASS}
                 />
                 <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-zinc-500">
                   zł
@@ -246,7 +249,7 @@ export function ProductFilters({
                   onChange={(e) =>
                     handlePriceInputChange("max_price", e.target.value)
                   }
-                  className="pr-8 text-sm"
+                  className={PRICE_INPUT_CLASS}
                 />
                 <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-zinc-500">
                   zł
