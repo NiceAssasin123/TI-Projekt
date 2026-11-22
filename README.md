@@ -61,7 +61,7 @@ Built as part of the *Internet Technologies* (Technologie Internetowe) academic 
 - [x] Storefront browsing UI & responsive product grid
 
 ### Phase 3: Domain Compliance & Shopping Experience
-- [ ] Shopping cart & local state persistence
+- [x] Shopping cart & local state persistence
 - [ ] Regulated goods workflow (permit number validation & in-store pickup booking)
 - [ ] Order placement & reservation pipeline
 
