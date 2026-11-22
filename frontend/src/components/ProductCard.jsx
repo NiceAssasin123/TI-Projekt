@@ -73,7 +73,7 @@ export function ProductCard({ product, onAddToCart }) {
           <Button
             onClick={() => onAddToCart?.(product)}
             className="w-full"
-            variant={requires_permit ? "destructive" : "default"}
+            variant="destructive"
             disabled={in_stock === 0}
           >
             <ShoppingCart className="mr-2 h-4 w-4" />

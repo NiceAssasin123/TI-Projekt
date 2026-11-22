@@ -151,7 +151,7 @@ export default function ProductDetails() {
           <Button
             onClick={handleAddToCart}
             size="lg"
-            variant={product.requires_permit ? 'destructive' : 'default'}
+            variant="destructive"
             disabled={product.in_stock === 0}
             className="w-full text-base"
           >
