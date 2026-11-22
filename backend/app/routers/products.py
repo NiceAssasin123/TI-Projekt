@@ -1,6 +1,6 @@
 from typing import List, Optional, Literal
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlmodel import Session, select, or_, col
+from sqlmodel import Session, select, or_, col, func
 from app.database import get_session
 from app.models import Product, Category, CatalogFiltersResponse
 from collections.abc import Sequence
@@ -76,7 +76,15 @@ def get_filters(session: Session = Depends(get_session)) -> CatalogFiltersRespon
     raw_manufacturers: Sequence[str] = session.exec(manufacturer_query).all()
     manufacturers: list[str] = [c for c in raw_manufacturers]
 
-    return CatalogFiltersResponse(categories=categories, calibers=calibers, manufacturers=manufacturers)
+    price_query = select(
+        func.min(col(Product.price)),
+        func.max(col(Product.price))
+    )
+    raw_min, raw_max = session.exec(price_query).one()
+    min_price: float = raw_min or 0.0
+    max_price: float = raw_max or 0.0
+
+    return CatalogFiltersResponse(categories=categories, calibers=calibers, manufacturers=manufacturers, min_price=min_price, max_price=max_price)
 
 @router.get("/{product_id}", response_model=Product)
 def get_product(

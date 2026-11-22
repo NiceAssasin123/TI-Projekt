@@ -31,3 +31,5 @@ class CatalogFiltersResponse(SQLModel):
     categories: list[str]
     calibers: list[str]
     manufacturers: list[str]
+    min_price: float
+    max_price: float

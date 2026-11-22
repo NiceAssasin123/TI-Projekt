@@ -216,3 +216,16 @@ def test_get_filters(session: Session, client: TestClient) -> None:
     assert filters_response.calibers == expected_calibers
     expected_manufacturers: list[str] = sorted({p.manufacturer for p in added})
     assert filters_response.manufacturers == expected_manufacturers
+    assert filters_response.min_price == min(p.price for p in added)
+    assert filters_response.max_price == max(p.price for p in added)
+
+
+def test_get_filters_empty_db(client: TestClient) -> None:
+    response: Response = client.get("/api/products/filters")
+    assert response.status_code == 200
+    filters_response: CatalogFiltersResponse = CatalogFiltersResponse.model_validate_json(response.content)
+    assert filters_response.categories == [c.value for c in Category]
+    assert filters_response.calibers == []
+    assert filters_response.manufacturers == []
+    assert filters_response.min_price == 0.0
+    assert filters_response.max_price == 0.0
