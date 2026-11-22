@@ -1,21 +1,33 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, ArrowUpDown } from "lucide-react";
 import { api } from "@/lib/api";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductFilters } from "@/components/ProductFilters";
+
+const SORT_OPTIONS = [
+  { value: "", label: "Domyślne" },
+  { value: "price_asc", label: "Cena: od najniższej" },
+  { value: "price_desc", label: "Cena: od najwyższej" },
+  { value: "name_asc", label: "Nazwa: A–Z" },
+  { value: "name_desc", label: "Nazwa: Z–A" },
+];
+
+const INITIAL_FILTERS = {
+  category: [],
+  caliber: [],
+  manufacturer: [],
+  min_price: "",
+  max_price: "",
+  sort_by: "",
+};
 
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Kategorie i kalibry w stanie lokalnym, a search zsynchronizowany z adresem URL
-  const [selectedFilters, setSelectedFilters] = useState({
-    category: [],
-    caliber: [],
-  });
+  const [selectedFilters, setSelectedFilters] = useState(INITIAL_FILTERS);
 
   const searchQuery = searchParams.get("search") || "";
   const trimmedSearch = searchQuery.trim();
@@ -24,11 +36,19 @@ export default function Products() {
 
   const filters = {
     search: searchQuery,
-    category: selectedFilters.category,
-    caliber: selectedFilters.caliber,
+    ...selectedFilters,
   };
 
-  // Efekt pobierający dane z API przy zmianie efektywnych filtrów
+  const hasActiveFilters = Boolean(
+    searchQuery.trim() ||
+      selectedFilters.category.length > 0 ||
+      selectedFilters.caliber.length > 0 ||
+      selectedFilters.manufacturer.length > 0 ||
+      selectedFilters.min_price !== "" ||
+      selectedFilters.max_price !== "" ||
+      selectedFilters.sort_by !== ""
+  );
+
   useEffect(() => {
     let isCancelled = false;
 
@@ -46,6 +66,25 @@ export default function Products() {
         }
         if (selectedFilters.caliber.length > 0) {
           activeFilters.caliber = selectedFilters.caliber;
+        }
+        if (selectedFilters.manufacturer.length > 0) {
+          activeFilters.manufacturer = selectedFilters.manufacturer;
+        }
+
+        if (selectedFilters.min_price !== "") {
+          const parsedMin = Number(selectedFilters.min_price);
+          if (!Number.isNaN(parsedMin) && parsedMin >= 0) {
+            activeFilters.min_price = parsedMin;
+          }
+        }
+        if (selectedFilters.max_price !== "") {
+          const parsedMax = Number(selectedFilters.max_price);
+          if (!Number.isNaN(parsedMax) && parsedMax >= 0) {
+            activeFilters.max_price = parsedMax;
+          }
+        }
+        if (selectedFilters.sort_by) {
+          activeFilters.sort_by = selectedFilters.sort_by;
         }
 
         const response = await api.get("/products", { params: activeFilters });
@@ -74,7 +113,15 @@ export default function Products() {
       isCancelled = true;
       clearTimeout(delayTimer);
     };
-  }, [effectiveSearch, selectedFilters.category, selectedFilters.caliber]);
+  }, [
+    effectiveSearch,
+    selectedFilters.category,
+    selectedFilters.caliber,
+    selectedFilters.manufacturer,
+    selectedFilters.min_price,
+    selectedFilters.max_price,
+    selectedFilters.sort_by,
+  ]);
 
   const handleFilterChange = (key, value) => {
     if (key === "search") {
@@ -92,7 +139,7 @@ export default function Products() {
   };
 
   const handleClearFilters = () => {
-    setSelectedFilters({ category: [], caliber: [] });
+    setSelectedFilters(INITIAL_FILTERS);
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete("search");
     setSearchParams(nextParams, { replace: true });
@@ -100,7 +147,7 @@ export default function Products() {
 
   const handleAddToCart = (product) => {
     console.log("Kliknięto Dodaj do koszyka:", product.name);
-    // Tutaj w podłączę logikę koszyka
+    // Logika koszyka w Issue #6
   };
 
   return (
@@ -112,12 +159,39 @@ export default function Products() {
             <ProductFilters
               filters={filters}
               onFilterChange={handleFilterChange}
+              onClearFilters={handleClearFilters}
+              hasActiveFilters={hasActiveFilters}
             />
           </div>
         </aside>
 
-        {/* Prawa kolumna: Wyniki i siatka */}
+        {/* Prawa kolumna: Pasek sortowania i siatka wyników */}
         <main className="flex-1">
+          <div className="mb-6 flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-900/30 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-zinc-400">
+              {loading
+                ? "Wyszukiwanie produktów..."
+                : `Znaleziono produktów: ${products.length}`}
+            </p>
+
+            <label className="flex items-center gap-2 text-sm text-zinc-300">
+              <ArrowUpDown className="h-4 w-4 text-zinc-500" />
+              <span className="shrink-0 text-zinc-400">Sortuj:</span>
+              <select
+                value={selectedFilters.sort_by}
+                onChange={(e) => handleFilterChange("sort_by", e.target.value)}
+                aria-label="Sortowanie produktów"
+                className="cursor-pointer rounded-md border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-sm text-zinc-100 outline-none transition-colors hover:border-zinc-600 focus:border-red-500"
+              >
+                {SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
           {error && (
             <div className="mb-6 flex items-center gap-2 rounded-lg border border-red-500/50 bg-red-500/10 p-4 text-red-500">
               <AlertCircle className="h-5 w-5" />
@@ -133,8 +207,9 @@ export default function Products() {
             <div className="flex h-64 flex-col items-center justify-center rounded-xl border border-dashed border-zinc-700 bg-zinc-900/30 text-zinc-400">
               <p>Nie znaleziono produktów dla podanych kryteriów.</p>
               <button
+                type="button"
                 onClick={handleClearFilters}
-                className="mt-4 text-red-500 transition-colors hover:text-red-400"
+                className="mt-4 cursor-pointer text-red-500 transition-colors hover:text-red-400"
               >
                 Wyczyść filtry
               </button>
