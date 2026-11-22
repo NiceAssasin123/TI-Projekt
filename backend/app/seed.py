@@ -16,6 +16,7 @@ products: list[Product] = [
         barrel_length_mm=104,
         mag_capacity="15+1",
         rail_system="Picatinny",
+        image_url="/images/mps_army.png",
     ),
     Product(
         name="MSBS Grot A3",
@@ -31,6 +32,7 @@ products: list[Product] = [
         mag_capacity="30+1",
         thread="1/2x28",
         rail_system="M-LOK",
+        image_url="/images/grot_a3.jpg",
     ),
     Product(
         name="Amunicja 9x19 Parabellum (50 szt.)",
@@ -42,6 +44,7 @@ products: list[Product] = [
         in_stock=45,
         requires_permit=True,
         caliber="9x19mm",
+        image_url="/images/9_19_parabellum.jpg",
     ),
     Product(
         name="Strzeleckie ochronniki słuchu Earmor",
@@ -51,6 +54,7 @@ products: list[Product] = [
         description="Aktywne ochronniki słuchu tłumiące impulsy akustyczne powyżej 82 dB przy jednoczesnym wzmacnianiu dźwięków otoczenia.",
         price=185.00,
         in_stock=25,
+        image_url="/images/earmor.jpg",
     ),
 ]
 
