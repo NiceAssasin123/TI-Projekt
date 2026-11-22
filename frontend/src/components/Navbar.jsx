@@ -59,7 +59,7 @@ export function Navbar() {
             onClick={() => setIsMobileMenuOpen((prev) => !prev)}
             aria-label={isMobileMenuOpen ? 'Zamknij menu' : 'Otwórz menu'}
             aria-expanded={isMobileMenuOpen}
-            className="rounded-md p-1.5 text-zinc-100 transition-colors hover:bg-zinc-800 hover:text-zinc-300 md:hidden"
+            className="cursor-pointer rounded-md p-1.5 text-zinc-100 transition-colors hover:bg-zinc-800 hover:text-zinc-300 md:hidden"
           >
             {isMobileMenuOpen ? (
               <X className="h-6 w-6" />
