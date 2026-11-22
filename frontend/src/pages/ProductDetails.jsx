@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ShieldAlert, ArrowLeft, ShoppingCart, ImageOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { api } from '../lib/api';
+import { useCartStore } from "@/store/useCartStore";
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -10,6 +11,7 @@ export default function ProductDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [failedImageUrl, setFailedImageUrl] = useState(null);
+  const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -74,8 +76,8 @@ export default function ProductDetails() {
     },
   ].filter((item) => item.value != null && item.value !== '');
 
-  const handleAddToCart = () => {
-    console.log('Kliknięto Dodaj do koszyka:', product.name);
+const handleAddToCart = () => {
+    addItem(product);
   };
 
   return (

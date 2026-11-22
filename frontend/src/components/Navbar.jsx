@@ -4,11 +4,16 @@ import { cn } from 'cn';
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useCartStore } from '@/store/useCartStore';
+import { calculateCartItemCount } from '@/lib/cartUtils';
 
 export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const items = useCartStore((state) => state.items);
+  const itemCount = calculateCartItemCount(items);
 
   const urlSearch =
     location.pathname === '/products'
@@ -18,7 +23,6 @@ export function Navbar() {
   const [searchInput, setSearchInput] = useState(urlSearch);
   const [prevUrlSearch, setPrevUrlSearch] = useState(urlSearch);
 
-  // Synchronizacja pola w Navbarze z parametrem ?search= w URL (bez useEffect)
   if (urlSearch !== prevUrlSearch) {
     setPrevUrlSearch(urlSearch);
     setSearchInput(urlSearch);
@@ -38,10 +42,19 @@ export function Navbar() {
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
+  const cartBadge = itemCount > 0 && (
+    <span
+      aria-label={`Liczba produktów w koszyku: ${itemCount}`}
+      className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-bold text-white"
+    >
+      {itemCount > 99 ? '99+' : itemCount}
+    </span>
+  );
+
   return (
     <nav className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-900 p-4">
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 md:flex-row">
-        {/* LOGO + przycisk hamburgera na mobile */}
+        {/* LOGO + ikona koszyka i hamburger na mobile */}
         <div className="flex w-full items-center justify-between space-x-2 md:w-auto">
           <Link
             to="/"
@@ -54,22 +67,37 @@ export function Navbar() {
             </span>
           </Link>
 
-          <button
-            type="button"
-            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-            aria-label={isMobileMenuOpen ? 'Zamknij menu' : 'Otwórz menu'}
-            aria-expanded={isMobileMenuOpen}
-            className="cursor-pointer rounded-md p-1.5 text-zinc-100 transition-colors hover:bg-zinc-800 hover:text-zinc-300 md:hidden"
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </button>
+          <div className="flex items-center gap-1 md:hidden">
+            <Link
+              to="/cart"
+              onClick={closeMobileMenu}
+              aria-label="Koszyk"
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "icon" }),
+                "relative hover:bg-zinc-800 hover:text-zinc-100"
+              )}
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {cartBadge}
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+              aria-label={isMobileMenuOpen ? 'Zamknij menu' : 'Otwórz menu'}
+              aria-expanded={isMobileMenuOpen}
+              className="cursor-pointer rounded-md p-1.5 text-zinc-100 transition-colors hover:bg-zinc-800 hover:text-zinc-300"
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+          </div>
         </div>
 
-        {/* Wyszukiwarka (Enter lub kliknięcie lupy) */}
+        {/* Wyszukiwarka */}
         <form
           onSubmit={handleSearchSubmit}
           className="relative flex w-full items-center md:max-w-md"
@@ -112,6 +140,7 @@ export function Navbar() {
             )}
           >
             <ShoppingCart className="h-5 w-5" />
+            {cartBadge}
           </Link>
 
           <Link
@@ -138,18 +167,6 @@ export function Navbar() {
             )}
           >
             Katalog
-          </Link>
-
-          <Link
-            to="/cart"
-            onClick={closeMobileMenu}
-            className={cn(
-              buttonVariants({ variant: "ghost" }),
-              "w-full justify-start gap-2 text-zinc-200 hover:bg-zinc-800 hover:text-zinc-100"
-            )}
-          >
-            <ShoppingCart className="h-4 w-4" />
-            Koszyk
           </Link>
 
           <Link

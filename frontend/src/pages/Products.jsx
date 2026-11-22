@@ -4,6 +4,7 @@ import { Loader2, AlertCircle, ArrowUpDown } from "lucide-react";
 import { api } from "@/lib/api";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductFilters } from "@/components/ProductFilters";
+import { useCartStore } from "@/store/useCartStore";
 
 const SORT_OPTIONS = [
   { value: "", label: "Domyślne" },
@@ -27,6 +28,7 @@ export default function Products() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const addItem = useCartStore((state) => state.addItem);
   const [selectedFilters, setSelectedFilters] = useState(INITIAL_FILTERS);
 
   const searchQuery = searchParams.get("search") || "";
@@ -146,8 +148,7 @@ export default function Products() {
   };
 
   const handleAddToCart = (product) => {
-    console.log("Kliknięto Dodaj do koszyka:", product.name);
-    // Logika koszyka w Issue #6
+    addItem(product);
   };
 
   return (
