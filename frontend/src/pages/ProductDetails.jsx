@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ShieldAlert, ArrowLeft, ShoppingCart, ImageOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { api } from '../lib/api';
+import { api } from '@/lib/api';
+import { useCartStore } from '@/store/useCartStore';
+import { formatPricePLN } from '@/lib/cartUtils';
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -11,21 +13,37 @@ export default function ProductDetails() {
   const [error, setError] = useState(null);
   const [failedImageUrl, setFailedImageUrl] = useState(null);
 
+  const items = useCartStore((state) => state.items);
+  const addItem = useCartStore((state) => state.addItem);
+
   useEffect(() => {
+    let isCancelled = false;
+
     const fetchProduct = async () => {
       setLoading(true);
       setError(null);
       try {
         const response = await api.get(`/products/${id}`);
-        setProduct(response.data);
+        if (!isCancelled) {
+          setProduct(response.data);
+        }
       } catch (err) {
         console.error(err);
-        setError('Nie udało się pobrać szczegółów produktu.');
+        if (!isCancelled) {
+          setError('Nie udało się pobrać szczegółów produktu.');
+        }
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     };
+
     fetchProduct();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [id]);
 
   if (loading) {
@@ -46,6 +64,11 @@ export default function ProductDetails() {
 
   const showImage =
     Boolean(product.image_url) && failedImageUrl !== product.image_url;
+
+  const cartItem = items.find((item) => item.id === product.id);
+  const quantityInCart = cartItem ? cartItem.quantity : 0;
+  const isOutOfStock = product.in_stock <= 0;
+  const reachedStockLimit = !isOutOfStock && quantityInCart >= product.in_stock;
 
   const specifications = [
     { label: 'Kategoria', value: product.category },
@@ -68,14 +91,10 @@ export default function ProductDetails() {
     },
     { label: 'Gwint lufy', value: product.thread },
     { label: 'System szyn', value: product.rail_system },
-    {
-      label: 'Dostępność',
-      value: product.in_stock > 0 ? `${product.in_stock} szt.` : 'Brak w magazynie',
-    },
   ].filter((item) => item.value != null && item.value !== '');
 
   const handleAddToCart = () => {
-    console.log('Kliknięto Dodaj do koszyka:', product.name);
+    addItem(product);
   };
 
   return (
@@ -130,7 +149,7 @@ export default function ProductDetails() {
           </h1>
 
           <div className="mb-6 text-3xl font-bold text-white">
-            {product.price.toFixed(2)} zł
+            {formatPricePLN(product.price)}
           </div>
 
           {product.description && (
@@ -139,24 +158,67 @@ export default function ProductDetails() {
             </p>
           )}
 
-          <div className="mb-8 space-y-2 border-y border-zinc-800 py-6 text-sm text-zinc-300">
-            {specifications.map(({ label, value }) => (
-              <div key={label} className="flex justify-between gap-4">
-                <span className="font-semibold text-zinc-500">{label}:</span>
-                <span className="text-right text-zinc-200">{value}</span>
-              </div>
-            ))}
+          {specifications.length > 0 && (
+            <div className="mb-6 space-y-2 border-y border-zinc-800 py-6 text-sm text-zinc-300">
+              {specifications.map(({ label, value }) => (
+                <div key={label} className="flex justify-between gap-4">
+                  <span className="font-semibold text-zinc-500">{label}:</span>
+                  <span className="text-right text-zinc-200">{value}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Status dostępności oddzielony od parametrów technicznych */}
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm">
+            <div className="flex items-center gap-2">
+              <span
+                className={`h-2.5 w-2.5 rounded-full ${
+                  product.in_stock > 5
+                    ? 'bg-emerald-500'
+                    : product.in_stock > 0
+                      ? 'bg-amber-500'
+                      : 'bg-red-500'
+                }`}
+              />
+              <span
+                className={
+                  product.in_stock > 0
+                    ? 'font-medium text-zinc-200'
+                    : 'font-medium text-red-400'
+                }
+              >
+                {product.in_stock > 5
+                  ? `Dostępny w magazynie (${product.in_stock} szt.)`
+                  : product.in_stock > 0
+                    ? `Ostatnie sztuki (${product.in_stock} szt.)`
+                    : 'Brak w magazynie'}
+              </span>
+            </div>
+
+            {quantityInCart > 0 && (
+              <Link
+                to="/cart"
+                className="text-xs font-medium text-zinc-400 underline-offset-4 transition-colors hover:text-zinc-200 hover:underline"
+              >
+                W koszyku: {quantityInCart} szt.
+              </Link>
+            )}
           </div>
 
           <Button
             onClick={handleAddToCart}
             size="lg"
             variant="destructive"
-            disabled={product.in_stock === 0}
+            disabled={isOutOfStock || reachedStockLimit}
             className="w-full text-base"
           >
             <ShoppingCart className="mr-2 h-5 w-5" />
-            {product.in_stock > 0 ? 'Dodaj do koszyka' : 'Brak w magazynie'}
+            {isOutOfStock
+              ? 'Brak w magazynie'
+              : reachedStockLimit
+                ? 'Maksymalna ilość w koszyku'
+                : 'Dodaj do koszyka'}
           </Button>
         </div>
       </div>
